@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>護法京都 Kyoto Guardians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#241f1c;
+    --dusk:#1a1b3a;
+    --dusk-deep:#101126;
+    --vermillion:#c23616;
+    --vermillion-bright:#e0521f;
+    --gold:#e8b33d;
+    --gold-soft:#f3d68a;
+    --cream:#f5ede0;
+    --moss:#41573c;
+    --moss-deep:#2c3d28;
+    --mist:#5a4a7a;
+    --mist-deep:#332748;
+    --frame-glow: rgba(232,179,61,0.15);
+  }
+  body.theme-2{
+    --dusk:#221733;
+    --dusk-deep:#130d1f;
+    --frame-glow: rgba(138,95,201,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--dusk-deep);font-family:'Noto Sans TC',sans-serif;color:var(--cream);overflow:hidden;}
+  .display{font-family:'Noto Serif TC',serif;}
+  #app{width:100%;height:100vh;display:flex;align-items:center;justify-content:center;}
+
+  .frame{
+    position:relative;width:720px;max-width:96vw;
+    border:3px solid var(--gold);border-radius:6px;
+    background:linear-gradient(180deg,var(--dusk) 0%,var(--dusk-deep) 100%);
+    box-shadow:0 0 0 8px var(--dusk-deep),0 0 44px var(--frame-glow),inset 0 0 30px rgba(0,0,0,0.45);
+    padding:10px;transition:background .6s;
+  }
+  .frame::before{content:"";position:absolute;inset:-3px;border:1px solid rgba(232,179,61,0.35);border-radius:6px;pointer-events:none;}
+  .frame::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:6px;background:radial-gradient(ellipse at 50% 0%,var(--frame-glow),transparent 60%);animation:mistpulse 6s ease-in-out infinite;}
+  @keyframes mistpulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+
+  #titleScreen{text-align:center;padding:50px 30px;}
+  #titleScreen .torii{font-size:64px;filter:drop-shadow(0 0 12px rgba(194,54,22,0.6));animation:flicker 4s ease-in-out infinite;}
+  @keyframes flicker{0%,100%{filter:drop-shadow(0 0 12px rgba(194,54,22,0.6));}50%{filter:drop-shadow(0 0 20px rgba(232,179,61,0.7));}}
+  #titleScreen h1{font-size:2.6em;margin:14px 0 2px;letter-spacing:.15em;color:var(--gold-soft);text-shadow:0 0 18px rgba(232,179,61,0.4);}
+  #titleScreen h2{font-weight:400;margin:0 0 30px;letter-spacing:.3em;color:rgba(245,237,224,0.55);font-size:0.85em;}
+  #titleScreen p.tagline{max-width:420px;margin:0 auto 34px;line-height:1.9;color:rgba(245,237,224,0.8);font-size:0.95em;}
+
+  .btn{font-family:'Noto Sans TC',sans-serif;background:linear-gradient(180deg,var(--vermillion-bright),var(--vermillion));color:var(--cream);border:1px solid var(--gold);padding:12px 34px;border-radius:3px;font-size:1em;cursor:pointer;letter-spacing:.1em;box-shadow:0 3px 0 #7a1d0d;transition:transform .1s;}
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(2px);box-shadow:0 1px 0 #7a1d0d;}
+  .btn.secondary{background:linear-gradient(180deg,#3b3d63,#252748);box-shadow:0 3px 0 #14152a;border-color:rgba(232,179,61,0.5);}
+  .btn.guardian{background:linear-gradient(180deg,#6b4fae,#432f76);box-shadow:0 3px 0 #241a44;border-color:var(--gold);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none;transform:none;}
+
+  #hud{display:flex;justify-content:space-between;align-items:center;padding:4px 8px 10px;font-size:0.82em;color:rgba(245,237,224,0.85);}
+  #hud .title{color:var(--gold-soft);letter-spacing:.1em;font-family:'Noto Serif TC',serif;}
+  #hud .hint{opacity:0.6;font-size:0.9em;}
+
+  #mapWrap{position:relative;}
+  #grid{display:grid;background:var(--moss-deep);border:2px solid rgba(232,179,61,0.5);border-radius:3px;overflow:hidden;transition:background .4s;}
+  body.theme-2 #grid{background:var(--mist-deep);}
+  .cell{display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1;position:relative;}
+  body.theme-2 .cell{font-size:18px;}
+
+  .t-grass{background:var(--moss);}
+  .t-path{background:#5b4b3a;}
+  .t-tree{background:var(--moss-deep);}
+  .t-water{background:#1e3d4d;}
+  .t-torii-gate{background:var(--moss);}
+
+  .t-ground{background:#3a2f52;}
+  .t-path2{background:#4d3f6b;}
+  .t-tree2{background:var(--mist-deep);}
+  .t-wall{background:#241a38;}
+  .t-hall{background:#3d2f5c;}
+
+  .glow{filter:drop-shadow(0 0 6px rgba(232,179,61,0.9));}
+  .corrupted{filter:hue-rotate(240deg) saturate(2.1) brightness(0.72) drop-shadow(0 0 9px rgba(120,20,160,0.85));}
+  .player-sprite{filter:drop-shadow(0 0 4px rgba(232,179,61,0.6));z-index:5;}
+  .awakened{filter:drop-shadow(0 0 8px rgba(232,179,61,1));}
+
+  #banner{position:absolute;left:50%;top:8px;transform:translateX(-50%);background:rgba(16,17,38,0.92);border:1px solid var(--gold);padding:6px 16px;border-radius:3px;font-size:0.85em;color:var(--gold-soft);opacity:0;pointer-events:none;transition:opacity .4s;white-space:nowrap;}
+  #banner.show{opacity:1;}
+
+  #dialogue{margin-top:10px;min-height:92px;background:var(--cream);color:var(--ink);border:2px solid var(--gold);border-radius:4px;padding:12px 16px;display:none;position:relative;font-size:0.95em;line-height:1.7;}
+  #dialogue .speaker{font-family:'Noto Serif TC',serif;font-weight:700;color:var(--vermillion);margin-bottom:4px;font-size:0.9em;}
+  #dialogue .next-hint{position:absolute;right:14px;bottom:8px;font-size:0.75em;color:#8a7a5c;}
+
+  #questPanel{display:none;margin-top:10px;background:rgba(16,17,38,0.92);border:1px solid var(--gold);border-radius:4px;padding:12px 16px;font-size:0.85em;max-height:220px;overflow-y:auto;}
+  #questPanel h3{margin:0 0 8px;color:var(--gold-soft);font-family:'Noto Serif TC',serif;letter-spacing:.1em;}
+  .quest-item{padding:6px 0;border-bottom:1px dashed rgba(232,179,61,0.25);}
+  .quest-item:last-child{border-bottom:none;}
+  .quest-item .qtitle{color:var(--gold-soft);}
+  .quest-item.done .qtitle::after{content:" ✔";color:#7bc47f;}
+  .quest-item .qdesc{opacity:0.75;margin-top:2px;}
+
+  #controlsBar{display:flex;gap:8px;margin-top:10px;justify-content:center;flex-wrap:wrap;}
+  #controlsBar .btn{padding:8px 18px;font-size:0.85em;}
+
+  #touchPad{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding:0 6px;user-select:none;}
+  #dpad{position:relative;width:132px;height:132px;}
+  .pad-btn{
+    position:absolute;width:44px;height:44px;
+    background:linear-gradient(180deg,#3b3d63,#252748);
+    border:1px solid var(--gold);border-radius:8px;color:var(--cream);
+    font-size:1.1em;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 0 #14152a;cursor:pointer;touch-action:manipulation;
+  }
+  .pad-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #14152a;}
+  .pad-up{top:0;left:44px;}
+  .pad-left{top:44px;left:0;}
+  .pad-right{top:44px;left:88px;}
+  .pad-down{top:88px;left:44px;}
+  #actionPad{display:flex;gap:10px;}
+  .pad-action{
+    position:static;width:64px;height:64px;border-radius:50%;
+    background:linear-gradient(180deg,var(--vermillion-bright),var(--vermillion));
+    flex-direction:column;font-size:1em;line-height:1.1;font-weight:700;
+  }
+  .pad-action span{font-size:0.6em;font-weight:400;opacity:0.85;}
+
+  @media (min-width:641px){ #touchPad{display:none;} }
+
+
+  #battleScreen{display:none;padding:6px;}
+  #battleField{display:flex;justify-content:space-between;align-items:flex-end;padding:20px 30px 10px;min-height:150px;background:radial-gradient(ellipse at 50% 100%,var(--frame-glow),transparent 70%);}
+  .combatant{text-align:center;width:145px;}
+  .combatant .sprite{font-size:55px;}
+  .combatant .name{font-family:'Noto Serif TC',serif;color:var(--gold-soft);margin-top:4px;font-size:0.9em;}
+  .hpbar-wrap{background:rgba(0,0,0,0.4);border:1px solid var(--gold);border-radius:8px;height:12px;margin-top:6px;overflow:hidden;}
+  .hpbar{height:100%;background:linear-gradient(90deg,#7bc47f,#4d9a52);transition:width .3s;}
+  .hpbar.mp{background:linear-gradient(90deg,#6ea8e8,#3f6fb0);}
+  .hptext{font-size:0.72em;opacity:0.8;margin-top:2px;}
+
+  #battleLog{background:var(--cream);color:var(--ink);border:2px solid var(--gold);border-radius:4px;padding:10px 14px;min-height:54px;font-size:0.9em;line-height:1.6;margin:0 4px;white-space:pre-line;}
+  #battleMenu{display:flex;gap:8px;padding:10px 4px 4px;flex-wrap:wrap;justify-content:center;}
+  #battleMenu .btn{flex:1 1 auto;min-width:105px;padding:9px 8px;font-size:0.84em;}
+  #guardianMenu{display:flex;gap:8px;padding:2px 4px 8px;flex-wrap:wrap;justify-content:center;}
+  #guardianMenu .btn{flex:1 1 auto;min-width:130px;padding:8px 6px;font-size:0.78em;}
+
+  #puzzleScreen{display:none;padding:16px;text-align:center;}
+  #puzzleScreen .glyph{font-size:44px;margin-bottom:8px;}
+  #puzzleScreen h3{color:var(--gold-soft);font-family:'Noto Serif TC',serif;letter-spacing:.1em;margin:0 0 14px;}
+  #puzzleQuestion{background:var(--cream);color:var(--ink);border:2px solid var(--gold);border-radius:4px;padding:14px 18px;font-size:0.95em;margin-bottom:14px;line-height:1.7;}
+  #puzzleOptions{display:flex;flex-direction:column;gap:8px;max-width:360px;margin:0 auto;}
+  #puzzleOptions .btn{width:100%;}
+  #puzzleFeedback{margin-top:10px;font-size:0.85em;color:var(--gold-soft);min-height:20px;}
+
+  #clearScreen{display:none;text-align:center;padding:50px 30px;max-height:82vh;overflow-y:auto;}
+  #clearScreen .clear-icon{font-size:46px;}
+  #clearScreen h1{color:var(--gold-soft);font-size:2em;letter-spacing:.2em;}
+  #clearScreen p{line-height:1.9;color:rgba(245,237,224,0.85);max-width:460px;margin:16px auto;font-size:0.95em;}
+  #clearScreen .credit{color:var(--gold-soft);font-family:'Noto Serif TC',serif;letter-spacing:.15em;margin-top:22px;}
+  #clearScreen .egg{margin-top:18px;padding:14px;border:1px dashed rgba(232,179,61,0.4);border-radius:6px;font-size:0.88em;opacity:0.9;}
+
+  ::-webkit-scrollbar{width:6px;}
+  ::-webkit-scrollbar-thumb{background:rgba(232,179,61,0.5);border-radius:3px;}
+</style>
+</head>
+<body class="theme-1">
+<div id="app">
+  <div class="frame">
+
+    <!-- TITLE -->
+    <div id="titleScreen">
+      <div class="torii">⛩️</div>
+      <h1 class="display">護法京都</h1>
+      <h2>K Y O T O &nbsp; G U A R D I A N S</h2>
+      <p class="tagline">京都不是靠神佛守護，<br>而是因為有人願意守護京都，神佛才會回應。</p>
+      <button class="btn" onclick="goToChapter1()">進入平安神宮</button>
+      <div style="margin-top:14px;font-size:0.75em;opacity:0.5;">方向鍵 / WASD 移動　　E 互動　　Q 任務</div>
+    </div>
+
+    <!-- OVERWORLD (shared by both chapters) -->
+    <div id="overworld" style="display:none;">
+      <div id="hud">
+        <span class="title" id="hudTitle">第一章・平安神宮</span>
+        <span id="hudInfo"></span>
+        <span class="hint">E 互動　Q 任務</span>
+      </div>
+      <div id="mapWrap">
+        <div id="grid"></div>
+        <div id="banner"></div>
+      </div>
+      <div id="dialogue" onclick="advanceDlg()">
+        <div class="speaker" id="dlgSpeaker"></div>
+        <div id="dlgText"></div>
+        <div class="next-hint">▶ 點擊 / 空白鍵繼續</div>
+      </div>
+      <div id="questPanel">
+        <h3>任務</h3>
+        <div id="questList"></div>
+      </div>
+      <div id="controlsBar">
+        <button class="btn secondary" onclick="toggleQuests()">任務日誌 (Q)</button>
+      </div>
+      <div id="touchPad">
+        <div id="dpad">
+          <button class="pad-btn pad-up" onclick="moveDir(0,-1)">▲</button>
+          <button class="pad-btn pad-left" onclick="moveDir(-1,0)">◀</button>
+          <button class="pad-btn pad-right" onclick="moveDir(1,0)">▶</button>
+          <button class="pad-btn pad-down" onclick="moveDir(0,1)">▼</button>
+        </div>
+        <div id="actionPad">
+          <button class="pad-btn pad-action" onclick="doInteract()">E<br><span>互動</span></button>
+          <button class="pad-btn pad-action" style="background:linear-gradient(180deg,#6b4fae,#432f76);" onclick="toggleQuests()">Q<br><span>任務</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PUZZLE (第二章用) -->
+    <div id="puzzleScreen">
+      <div class="glyph" id="puzzleGlyph">🜃</div>
+      <h3 id="puzzleTitle">地之陣</h3>
+      <div id="puzzleQuestion"></div>
+      <div id="puzzleOptions"></div>
+      <div id="puzzleFeedback"></div>
+    </div>
+
+    <!-- BATTLE (shared by both chapters) -->
+    <div id="battleScreen">
+      <div id="hud"><span class="title" id="battleTitle">戰鬥</span><span></span><span></span></div>
+      <div id="battleField">
+        <div class="combatant" id="enemyCombatant">
+          <div class="sprite" id="enemySprite">📃</div>
+          <div class="name" id="enemyName">紙妖</div>
+          <div class="hpbar-wrap"><div class="hpbar" id="enemyHpBar" style="width:100%"></div></div>
+          <div class="hptext" id="enemyHpText"></div>
+        </div>
+        <div class="combatant" id="playerCombatant">
+          <div class="sprite">🧑</div>
+          <div class="name">蒼真</div>
+          <div class="hpbar-wrap"><div class="hpbar" id="playerHpBar" style="width:100%"></div></div>
+          <div class="hptext" id="playerHpText"></div>
+          <div class="hpbar-wrap"><div class="hpbar mp" id="playerMpBar" style="width:100%"></div></div>
+          <div class="hptext" id="playerMpText"></div>
+        </div>
+      </div>
+      <div id="battleLog">戰鬥開始！</div>
+      <div id="guardianMenu" style="display:none;"></div>
+      <div id="battleMenu">
+        <button class="btn" onclick="battleAction('attack')">⚔ 攻擊</button>
+        <button class="btn" onclick="battleAction('spell')">✨ 除魔符</button>
+        <button class="btn" onclick="battleAction('item')">🍘 仙貝</button>
+        <button class="btn secondary" id="fleeBtn" onclick="battleAction('flee')">🏃 逃跑</button>
+      </div>
+    </div>
+
+    <!-- CLEAR / TRANSITION (reused for 第一章完 interstitial and 第二章完 真結局) -->
+    <div id="clearScreen">
+      <div class="clear-icon" id="clearIcon">⛩️</div>
+      <h1 class="display" id="clearTitle">第一章　完</h1>
+      <p id="clearText"></p>
+      <div class="credit" id="clearCredit" style="display:none;">護法京都　Kyoto Guardians</div>
+      <div class="egg" id="clearEgg" style="display:none;"></div>
+      <button class="btn secondary" id="clearBtn">前往東寺篇</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   護法京都 Kyoto Guardians - 完整版（第一章＋第二章）
+   ========================================================= */
+
+let activeApi = null;
+
+function goToChapter1(){
+  document.getElementById('titleScreen').style.display='none';
+  document.getElementById('clearScreen').style.display='none';
+  activeApi = Chapter1;
+  Chapter1.start();
+}
+function goToChapter2(){
+  document.getElementById('clearScreen').style.display='none';
+  activeApi = Chapter2;
+  Chapter2.start();
+}
+function toggleQuests(){ if(activeApi) activeApi.toggleQuests(); }
+function battleAction(action){ if(activeApi) activeApi.battleAction(action); }
+function moveDir(dx,dy){ if(activeApi) activeApi.movePlayer(dx,dy); }
+function doInteract(){ if(activeApi) activeApi.interact(); }
+function advanceDlg(){ if(activeApi) activeApi.advanceDialogue(); }
+document.addEventListener('keydown', (e)=>{ if(activeApi) activeApi.handleKey(e); });
+
+// =========================================================================
+// CHAPTER 1：平安神宮
+// =========================================================================
+const Chapter1 = (function(){
+
+  const COLS = 20, ROWS = 16;
+  const CELL = 30;
+
+  let terrain = [];
+  for(let y=0;y<ROWS;y++){
+    const row=[];
+    for(let x=0;x<COLS;x++){
+      if(x===0||x===COLS-1||y===0||y===ROWS-1) row.push('T');
+      else row.push('.');
+    }
+    terrain.push(row);
+  }
+  const extraTrees = [[3,3],[4,3],[15,4],[16,4],[7,8],[8,8],[12,9],[13,9],[5,12],[6,12],[14,12],[15,12],[9,5],[10,5]];
+  extraTrees.forEach(([x,y])=>{ terrain[y][x]='T'; });
+  const water = [[15,3],[16,3],[16,2]];
+  water.forEach(([x,y])=>{ terrain[y][x]='~'; });
+  terrain[7][10] = 'G';      // 御神木 (枯萎的神木)
+  terrain[14][10] = 'O';     // 鳥居結界 (南方，通往東寺)
+  terrain[6][13] = 'E';      // 繪馬台
+  for(let x=8;x<=12;x++) terrain[2][x] = ',';
+  for(let y=2;y<=14;y++) terrain[y][10] = (terrain[y][10]==='.') ? ',' : terrain[y][10];
+
+  function tileClass(t){
+    switch(t){
+      case 'T': return 't-tree';
+      case '~': return 't-water';
+      case ',': return 't-path';
+      case 'O': return 't-torii-gate';
+      default: return 't-grass';
+    }
+  }
+  function tileGlyph(t){
+    if(t==='T') return '🌲';
+    if(t==='~') return '💧';
+    if(t==='G') return '🥀';
+    if(t==='O') return '⛩️';
+    if(t==='E') return '🪧';
+    return '';
+  }
+  const blocking = new Set(['T','~','G']);
+
+  const state = {
+    x:10, y:2, facing:'down',
+    hp:30, maxHp:30, mp:10, maxMp:10, atk:6, def:2,
+    snacks:3,
+    kaimaruJoined:false,
+    hasOmamori:false,
+    herbsCollected:0,
+    herbFlags:{h1:false,h2:false,h3:false},
+    foundDog:false,
+    paperYokaiDefeated:false,
+    bossDefeated:false,
+    bossTriggered:false,
+    dialogueQueue:[],
+    dialogueCallback:null,
+    inDialogue:false,
+    inBattle:false,
+  };
+
+  const quests = {
+    omamori:{title:'找回遺失的御守', status:'locked', desc:'巫女大人的御守不知掉在神宮的哪個角落了。'},
+    yokai:{title:'驅除紙妖', status:'locked', desc:'神職大人說森林深處出現了來歷不明的紙妖。'},
+    herbs:{title:'收集靈草', status:'locked', desc:'採集三株靈草，用來治療病倒的村人。'},
+    dog:{title:'幫小孩找回走失的小狗', status:'locked', desc:'一個孩子的小狗跑丟了，好像躲進樹叢裡了。'},
+    barrier:{title:'修復鳥居結界', status:'locked', desc:'向師父回報，一起修復逐漸崩解的結界。'},
+  };
+
+  const npcs = [
+    {id:'miko', x:6, y:4, emoji:'👘', name:'巫女',
+      get(){
+        if(quests.omamori.status==='locked') return ['巫女：「太好了，你來得正好……」','巫女：「我的御守不知掉在神宮的哪裡了，能幫我找找嗎？」'];
+        if(quests.omamori.status==='active') return ['巫女：「御守應該還在神宮境內，麻煩你了。」'];
+        if(quests.omamori.status==='ready') return ['巫女：「啊！這就是我的御守，太謝謝你了！」','巫女：「這份心意，也請你帶在身上吧。」'];
+        return ['巫女：「有你在，神宮也安心不少呢。」'];
+      },
+      onTalk(){
+        if(quests.omamori.status==='locked'){ quests.omamori.status='active'; renderQuests(); }
+        else if(quests.omamori.status==='ready'){ quests.omamori.status='done'; renderQuests(); }
+      }
+    },
+    {id:'priest', x:14, y:5, emoji:'🙇',name:'神職',
+      get(){
+        if(quests.yokai.status==='locked') return ['神職：「森林深處……出現了從未見過的紙妖。」','神職：「拜託你，去確認一下情況吧。」'];
+        if(quests.yokai.status==='active') return ['神職：「小心，紙妖就在東邊的樹林裡。」'];
+        return ['神職：「多虧了你，境內總算安穩了些。」'];
+      },
+      onTalk(){ if(quests.yokai.status==='locked'){ quests.yokai.status='active'; renderQuests(); } }
+    },
+    {id:'elder', x:9, y:3, emoji:'🧓',name:'村中老婆婆',
+      get(){
+        if(quests.herbs.status==='locked') return ['老婆婆：「村裡有人病倒了……」','老婆婆：「若能採到三株靈草，或許能救他。」'];
+        if(quests.herbs.status==='active') return [`老婆婆：「還差 ${3-state.herbsCollected} 株靈草呢，孩子。」`];
+        if(quests.herbs.status==='ready') return ['老婆婆：「三株都齊了！這下有救了。」'];
+        return ['老婆婆：「你真是個心地善良的孩子。」'];
+      },
+      onTalk(){
+        if(quests.herbs.status==='locked'){ quests.herbs.status='active'; renderQuests(); }
+        else if(quests.herbs.status==='ready'){ quests.herbs.status='done'; renderQuests(); }
+      }
+    },
+    {id:'kid', x:5, y:2, emoji:'🧒',name:'小孩',
+      get(){
+        if(quests.dog.status==='locked') return ['小孩：「嗚……我的小狗不見了……」','小孩：「牠好像跑進南邊的樹叢裡了。」'];
+        if(quests.dog.status==='active') return ['小孩：「拜託你，一定要找到牠……」'];
+        if(quests.dog.status==='ready') return ['小孩：「太好了！謝謝你把牠帶回來！」'];
+        return ['小孩：「有你在，我就放心了！」'];
+      },
+      onTalk(){
+        if(quests.dog.status==='locked'){ quests.dog.status='active'; renderQuests(); }
+        else if(quests.dog.status==='ready'){ quests.dog.status='done'; renderQuests(); }
+      }
+    },
+    {id:'master', x:10, y:13, emoji:'🧙',name:'師父',
+      get(){
+        const remain = ['omamori','yokai','herbs','dog'].filter(k=>quests[k].status!=='done');
+        if(remain.length>0){
+          return ['師父：「結界日漸薄弱，光靠我們兩人是不夠的。」','師父：「先去幫幫神宮裡需要幫助的人吧。」'];
+        }
+        if(!state.bossDefeated){
+          quests.barrier.status='active';
+          return ['師父：「你都做到了……那麼，事不宜遲。」','師父：「隨我到鳥居前，一起修復結界！」','師父：「等等……那是……！」'];
+        }
+        return ['師父：「你已經證明了，真正守護京都的是願意挺身而出的人。」'];
+      },
+      onTalk(){
+        const remain = ['omamori','yokai','herbs','dog'].filter(k=>quests[k].status!=='done');
+        if(remain.length===0 && !state.bossDefeated && !state.bossTriggered){
+          state.bossTriggered = true;
+          setTimeout(()=>startBossSequence(), 400);
+        }
+      }
+    },
+  ];
+
+  const items = [
+    {id:'omamori', x:3, y:10, emoji:'📿', taken:false,
+      onGet(){ quests.omamori.status='ready'; renderQuests(); showBanner('獲得了「御守」'); }},
+    {id:'herb1', x:2, y:5, emoji:'🌿', taken:false, onGet(){ collectHerb('h1'); }},
+    {id:'herb2', x:17, y:10, emoji:'🌿', taken:false, onGet(){ collectHerb('h2'); }},
+    {id:'herb3', x:9, y:11, emoji:'🌿', taken:false, onGet(){ collectHerb('h3'); }},
+    {id:'dog', x:4, y:11, emoji:'🐕', taken:false,
+      onGet(){ quests.dog.status='ready'; renderQuests(); showBanner('找到了小狗！'); }},
+  ];
+  function collectHerb(k){
+    if(state.herbFlags[k]) return;
+    state.herbFlags[k]=true;
+    state.herbsCollected++;
+    showBanner(`獲得了「靈草」(${state.herbsCollected}/3)`);
+    if(state.herbsCollected>=3){ quests.herbs.status='ready'; }
+    renderQuests();
+  }
+
+  const yokaiTrigger = {x:16, y:9, done:false};
+  const emaStand = {x:13, y:6};
+  let kaimaruShownAtEma = false;
+  let kaimaru = {x:13, y:7, active:false};
+
+  const gridEl = document.getElementById('grid');
+
+  function entityAt(x,y){
+    if(state.x===x && state.y===y) return {emoji:'🧑', cls:'player-sprite'};
+    if(kaimaru.active && kaimaru.x===x && kaimaru.y===y) return {emoji:'🦌', cls:'glow'};
+    if(!yokaiTrigger.done && yokaiTrigger.x===x && yokaiTrigger.y===y && quests.yokai.status!=='locked')
+      return {emoji:'📃', cls:'glow'};
+    for(const n of npcs){ if(n.x===x && n.y===y) return {emoji:n.emoji, cls:''}; }
+    for(const it of items){ if(!it.taken && it.x===x && it.y===y) return {emoji:it.emoji, cls:'glow'}; }
+    return null;
+  }
+
+  function updateHud(){
+    const el = document.getElementById('hudInfo');
+    if(!el) return;
+    el.textContent = `🍘×${state.snacks}` + (kaimaru.active ? '　鹿丸同行中' : '');
+  }
+
+  function renderMap(){
+    updateHud();
+    let html='';
+    for(let y=0;y<ROWS;y++){
+      for(let x=0;x<COLS;x++){
+        const t = terrain[y][x];
+        const ent = entityAt(x,y);
+        let glyph = ent ? ent.emoji : tileGlyph(t);
+        let extraCls = ent ? ent.cls : '';
+        html += `<div class="cell ${tileClass(t)} ${extraCls}">${glyph}</div>`;
+      }
+    }
+    gridEl.innerHTML = html;
+  }
+
+  function renderQuests(){
+    const list = document.getElementById('questList');
+    let html='';
+    Object.values(quests).forEach(q=>{
+      if(q.status==='locked') return;
+      const done = q.status==='done';
+      html += `<div class="quest-item ${done?'done':''}"><div class="qtitle">${q.title}</div><div class="qdesc">${q.desc}</div></div>`;
+    });
+    if(!html) html = '<div class="qdesc">還沒有接到任何任務，去跟神宮裡的人聊聊看吧。</div>';
+    list.innerHTML = html;
+  }
+  function toggleQuests(){
+    renderQuests();
+    const p = document.getElementById('questPanel');
+    p.style.display = (p.style.display==='block') ? 'none' : 'block';
+  }
+
+  let bannerTimeout=null;
+  function showBanner(text){
+    const b = document.getElementById('banner');
+    b.textContent = text;
+    b.classList.add('show');
+    clearTimeout(bannerTimeout);
+    bannerTimeout = setTimeout(()=>b.classList.remove('show'), 1800);
+  }
+
+  function say(lines, callback){
+    state.dialogueQueue = lines.slice();
+    state.dialogueCallback = callback || null;
+    state.inDialogue = true;
+    document.getElementById('dialogue').style.display='block';
+    advanceDialogue();
+  }
+  function advanceDialogue(){
+    if(state.dialogueQueue.length===0){
+      document.getElementById('dialogue').style.display='none';
+      state.inDialogue = false;
+      const cb = state.dialogueCallback;
+      state.dialogueCallback = null;
+      if(cb) cb();
+      return;
+    }
+    const line = state.dialogueQueue.shift();
+    const idx = line.indexOf('：「');
+    const speakerEl = document.getElementById('dlgSpeaker');
+    const textEl = document.getElementById('dlgText');
+    if(idx>-1){
+      speakerEl.textContent = line.slice(0,idx);
+      let body = line.slice(idx+2);
+      if(body.endsWith('」')) body = body.slice(0,-1);
+      textEl.textContent = body;
+    }else{
+      speakerEl.textContent='';
+      textEl.textContent = line;
+    }
+  }
+
+  function canWalk(x,y){
+    if(x<0||y<0||x>=COLS||y>=ROWS) return false;
+    const t = terrain[y][x];
+    if(blocking.has(t)) return false;
+    if(t==='O'){
+      const remain = ['omamori','yokai','herbs','dog'].filter(k=>quests[k].status!=='done');
+      if(remain.length>0 || !state.bossDefeated && !state.bossTriggered) return false;
+    }
+    for(const n of npcs){ if(n.x===x&&n.y===y) return false; }
+    return true;
+  }
+  function movePlayer(dx,dy){
+    if(state.inDialogue||state.inBattle) return;
+    const nx=state.x+dx, ny=state.y+dy;
+    if(!canWalk(nx,ny)) return;
+    state.x=nx; state.y=ny;
+    if(kaimaru.active){
+      const px = state.x-dx, py=state.y-dy;
+      kaimaru.x = px; kaimaru.y = py;
+    }
+    checkTileEvents();
+    renderMap();
+  }
+  function checkTileEvents(){
+    for(const it of items){
+      if(!it.taken && it.x===state.x && it.y===state.y){
+        it.taken = true;
+        it.onGet();
+        if(it.id==='omamori') state.hasOmamori=true;
+        if(it.id==='dog') state.foundDog=true;
+        renderMap();
+      }
+    }
+    if(!yokaiTrigger.done && quests.yokai.status!=='locked' && state.x===yokaiTrigger.x && state.y===yokaiTrigger.y){
+      yokaiTrigger.done = true;
+      say(['📃：「……唰啦……唰啦……」','神職：「就是牠！小心！」'], ()=> startBattle('yokai'));
+    }
+  }
+  function interact(){
+    if(state.inDialogue||state.inBattle) return;
+    for(const n of npcs){
+      if(Math.abs(n.x-state.x)+Math.abs(n.y-state.y)<=1 && !(n.x===state.x&&n.y===state.y)){
+        say(n.get(), ()=> n.onTalk());
+        return;
+      }
+    }
+    if(!kaimaruShownAtEma && quests.yokai.status==='done' &&
+       Math.abs(emaStand.x-state.x)+Math.abs(emaStand.y-state.y)<=1){
+      kaimaruShownAtEma = true;
+      say([
+        '（一隻鹿正在啃繪馬……）',
+        '蒼真：「喂！那個不能吃！」',
+        '鹿：「我以為京都仙貝比較硬。」',
+        '蒼真：「你怎麼會在這裡？」',
+        '鹿：「迷路。」',
+        '蒼真：「迷多久？」',
+        '鹿：「三百年。」',
+        '蒼真：「……」',
+        '蒼真：「……算了，你要不要跟我一起走？」',
+        '鹿：「好啊。反正我也不知道路。」'
+      ], ()=>{
+        kaimaru.active = true;
+        kaimaru.x = state.x; kaimaru.y = state.y-1<0?state.y+1:state.y-1;
+        showBanner('鹿丸　加入了隊伍！');
+        renderMap();
+      });
+      return;
+    }
+    if(Math.abs(state.x-10)<=1 && Math.abs(state.y-7)<=1 && terrain[7][10]==='G'){
+      say(['御神木早已枯萎，枝葉上覆著一層看不見的陰翳。','（似乎只有恢復人心的善願，才能讓它重新抽芽……）']);
+    }
+  }
+
+  function handleKey(e){
+    if(document.getElementById('dialogue').style.display==='block' && (e.key===' '||e.key==='Enter')){
+      e.preventDefault(); advanceDialogue(); return;
+    }
+    const overworldVisible = document.getElementById('overworld').style.display!=='none';
+    if(!overworldVisible || state.inBattle) return;
+    switch(e.key){
+      case 'ArrowUp': case 'w': case 'W': movePlayer(0,-1); break;
+      case 'ArrowDown': case 's': case 'S': movePlayer(0,1); break;
+      case 'ArrowLeft': case 'a': case 'A': movePlayer(-1,0); break;
+      case 'ArrowRight': case 'd': case 'D': movePlayer(1,0); break;
+      case 'e': case 'E': interact(); break;
+      case 'q': case 'Q': toggleQuests(); break;
+    }
+  }
+
+  let battle = null;
+  function startBattle(kind){
+    state.inBattle = true;
+    document.getElementById('overworld').style.display='none';
+    document.getElementById('battleScreen').style.display='block';
+    document.getElementById('guardianMenu').style.display='none';
+    document.getElementById('guardianMenu').innerHTML='';
+    if(kind==='yokai'){
+      battle = {kind, enemy:{name:'紙妖', emoji:'📃', hp:16, maxHp:16, atk:3, def:0, corrupted:false}, canFlee:true};
+      document.getElementById('battleTitle').textContent='突發戰鬥';
+    } else {
+      battle = {kind, enemy:{name:'怨鹿', emoji:'🦌', hp:55, maxHp:55, atk:6, def:2, corrupted:true}, canFlee:false};
+      document.getElementById('battleTitle').textContent='第一章　頭目戰';
+    }
+    document.getElementById('enemySprite').textContent = battle.enemy.emoji;
+    document.getElementById('enemySprite').className = 'sprite'+(battle.enemy.corrupted?' corrupted':'');
+    document.getElementById('enemyName').textContent = battle.enemy.name;
+    document.getElementById('fleeBtn').style.display = battle.canFlee ? 'inline-block':'none';
+    updateBattleUI();
+    logBattle(kind==='yokai' ? '紙妖突然襲擊了過來！' : '怨鹿擋在了鳥居之前……');
+  }
+  function updateBattleUI(){
+    document.getElementById('enemyHpBar').style.width = Math.max(0,(battle.enemy.hp/battle.enemy.maxHp*100))+'%';
+    document.getElementById('enemyHpText').textContent = `HP ${Math.max(0,battle.enemy.hp)}/${battle.enemy.maxHp}`;
+    document.getElementById('playerHpBar').style.width = Math.max(0,(state.hp/state.maxHp*100))+'%';
+    document.getElementById('playerHpText').textContent = `HP ${Math.max(0,state.hp)}/${state.maxHp}`;
+    document.getElementById('playerMpBar').style.width = Math.max(0,(state.mp/state.maxMp*100))+'%';
+    document.getElementById('playerMpText').textContent = `MP ${Math.max(0,state.mp)}/${state.maxMp}`;
+  }
+  function logBattle(text){ document.getElementById('battleLog').textContent = text; }
+
+  function battleAction(action){
+    if(!battle || battle.over) return;
+    let msg = '';
+    if(action==='attack'){
+      const dmg = Math.max(1, state.atk - battle.enemy.def + Math.floor(Math.random()*4)-1);
+      battle.enemy.hp -= dmg;
+      msg = `蒼真發動攻擊，造成 ${dmg} 點傷害！`;
+    } else if(action==='spell'){
+      if(state.mp<3){ logBattle('法力不足，無法使用除魔符。'); return; }
+      state.mp -= 3;
+      const dmg = Math.max(2, state.atk + 5 - battle.enemy.def + Math.floor(Math.random()*4)-1);
+      battle.enemy.hp -= dmg;
+      msg = `蒼真使出除魔符，造成 ${dmg} 點傷害！`;
+    } else if(action==='item'){
+      if(state.snacks<=0){ logBattle('已經沒有仙貝了。'); return; }
+      state.snacks--;
+      const heal = 10;
+      state.hp = Math.min(state.maxHp, state.hp+heal);
+      msg = `分了鹿丸一塊仙貝，順便恢復了 ${heal} 點HP。`;
+    } else if(action==='flee'){
+      if(!battle.canFlee){ logBattle('無法從這場戰鬥中逃跑！'); return; }
+      endBattle(false, true);
+      return;
+    }
+    updateBattleUI();
+    if(battle.enemy.hp<=0){
+      logBattle(msg);
+      setTimeout(()=>endBattle(true,false), 700);
+      return;
+    }
+    setTimeout(()=>enemyTurn(msg), 650);
+  }
+  function enemyTurn(prevMsg){
+    if(battle.over) return;
+    let dmg = Math.max(1, battle.enemy.atk - state.def + Math.floor(Math.random()*3)-1);
+    let guardMsg = '';
+    if(kaimaru.active && Math.random()<0.25){
+      dmg = Math.ceil(dmg/2);
+      guardMsg = ' 鹿丸衝過來擋了一下：「我、我來擋！」';
+    }
+    state.hp -= dmg;
+    updateBattleUI();
+    logBattle(`${prevMsg}\n${battle.enemy.name}反擊，造成 ${dmg} 點傷害！${guardMsg}`);
+    if(state.hp<=0){
+      setTimeout(()=>{ state.hp = 1; logBattle('蒼真踉蹌了一下，但還能繼續戰鬥！'); }, 700);
+    }
+  }
+  function endBattle(won, fled){
+    battle.over = true;
+    state.inBattle = false;
+    document.getElementById('battleScreen').style.display='none';
+    document.getElementById('overworld').style.display='block';
+    if(fled){ showBanner('逃跑了……'); renderMap(); return; }
+    if(battle.kind==='yokai' && won){
+      quests.yokai.status='done';
+      renderQuests();
+      say(['神職：「太厲害了！紙妖總算被淨化了。」']);
+      renderMap();
+      return;
+    }
+    if(battle.kind==='boss' && won){ finishBossSequence(); return; }
+  }
+  function startBossSequence(){
+    say([
+      '師父：「跟我來，就在南邊的鳥居前。」',
+      '（來到鳥居前，一股濃重的怨氣迎面而來……）',
+      '???：「……我在守護京都……」',
+      '師父：「是神鹿！牠被怨念侵蝕了！」',
+      '師父：「蒼真，只能靠你了！」'
+    ], ()=> startBattle('boss'));
+  }
+  function finishBossSequence(){
+    say([
+      '（怨鹿身上的黑色怨氣逐漸消散……）',
+      '神鹿：「真正的黑暗……」',
+      '神鹿：「在京都南方……」',
+      '神鹿：「東寺……」',
+      '（神鹿化成點點光芒，消失在空氣中。）',
+      '師父：「京都最後一道護法，就在東寺。」',
+      '師父：「蒼真，你準備好了嗎？」',
+      '蒼真：「……嗯，我準備好了。」'
+    ], ()=>{
+      state.bossDefeated = true;
+      quests.barrier.status='done';
+      renderQuests();
+      showClearScreen();
+    });
+  }
+  function showClearScreen(){
+    document.getElementById('overworld').style.display='none';
+    document.getElementById('clearScreen').style.display='block';
+    document.getElementById('clearIcon').textContent = '⛩️';
+    document.getElementById('clearTitle').textContent = '第一章　完';
+    document.getElementById('clearText').textContent =
+      '平安神宮的異變總算平息，然而神鹿的遺言仍縈繞耳邊——「真正的黑暗，在東寺」。蒼真與鹿丸，即將啟程前往京都南方。';
+    document.getElementById('clearCredit').style.display='none';
+    document.getElementById('clearEgg').style.display='none';
+    const btn = document.getElementById('clearBtn');
+    btn.textContent = '前往東寺篇';
+    btn.onclick = goToChapter2;
+  }
+
+  function start(){
+    document.body.className='theme-1';
+    document.getElementById('hudTitle').textContent = '第一章・平安神宮';
+    gridEl.style.gridTemplateColumns = `repeat(${COLS}, ${CELL}px)`;
+    gridEl.style.gridTemplateRows = `repeat(${ROWS}, ${CELL}px)`;
+    gridEl.style.width = (COLS*CELL)+'px';
+    gridEl.style.height = (ROWS*CELL)+'px';
+    document.getElementById('overworld').style.display='block';
+    renderQuests();
+    renderMap();
+  }
+
+  return {start, handleKey, toggleQuests, battleAction, movePlayer, interact, advanceDialogue};
+})();
+
+// =========================================================================
+// CHAPTER 2：東寺
+// =========================================================================
+const Chapter2 = (function(){
+
+  const COLS = 22, ROWS = 16;
+  const CELL = 28;
+
+  let terrain = [];
+  for(let y=0;y<ROWS;y++){
+    const row=[];
+    for(let x=0;x<COLS;x++){
+      if(x===0||x===COLS-1||y===0||y===ROWS-1) row.push('T');
+      else row.push('.');
+    }
+    terrain.push(row);
+  }
+  const extraTrees = [
+    [3,3],[3,4],[18,3],[18,4],
+    [8,6],[9,6],[12,6],[13,6],
+    [7,10],[8,10],
+    [14,10],[15,10],
+    [2,12],[2,13],[19,12],[19,13]
+  ];
+  extraTrees.forEach(([x,y])=>{ terrain[y][x]='T'; });
+
+  for(let y=2;y<=13;y++) terrain[y][11] = (terrain[y][11]==='.')?',':terrain[y][11];
+  for(let x=2;x<=19;x++) terrain[7][x] = (terrain[7][x]==='.')?',':terrain[7][x];
+
+  terrain[4][5] = 'Y';
+  for(let y=8;y<=13;y++){
+    terrain[y][4] = (terrain[y][4]==='.')?',':terrain[y][4];
+    terrain[y][3]='T'; terrain[y][5]='T';
+  }
+  terrain[13][4] = 'F';
+  terrain[11][16]='1'; terrain[11][19]='2'; terrain[14][16]='3'; terrain[14][19]='4';
+  for(let y=9;y<=14;y++) terrain[y][17]=(terrain[y][17]==='.')?',':terrain[y][17];
+  for(let x=15;x<=20;x++) terrain[12][x]=(terrain[12][x]==='.')?',':terrain[12][x];
+  terrain[9][11] = 'D';
+  terrain[3][11] = 'M';
+
+  function tileClass(t){
+    switch(t){
+      case 'T': return 't-tree2';
+      case ',': return 't-path2';
+      case 'Y': case 'F': case 'D': case 'M': return 't-hall';
+      case '1': case '2': case '3': case '4': return 't-hall';
+      default: return 't-ground';
+    }
+  }
+  function tileGlyph(t){
+    if(t==='T') return '🌲';
+    if(t==='Y') return awakened.yakushi ? '🌟' : '🛕';
+    if(t==='F') return awakened.fudo ? '🌟' : '⚔️';
+    if(t==='D') return awakened.dainichi ? '☀️' : '🕯️';
+    if(t==='M') return '🏮';
+    if(t==='1') return formations.earth.solved ? '✅' : '🜃';
+    if(t==='2') return formations.water.solved ? '✅' : '🜄';
+    if(t==='3') return formations.fire.solved ? '✅' : '🜂';
+    if(t==='4') return formations.wind.solved ? '✅' : '🜁';
+    return '';
+  }
+  const blocking = new Set(['T','Y','F','D']);
+
+  const state = {
+    x:11, y:2,
+    hp:40, maxHp:40, mp:14, maxMp:14, atk:8, def:3,
+    snacks:3,
+    dialogueQueue:[], dialogueCallback:null, inDialogue:false, inBattle:false, inPuzzle:false,
+    metMonk:false,
+    bossTriggered:false, bossDefeated:false,
+  };
+  const kaimaru = {x:11,y:3,active:true};
+
+  const awakened = {yakushi:false, fudo:false, kongo:false, dainichi:false};
+
+  const quests = {
+    monk:{title:'謁見金堂老僧', status:'active', desc:'向老僧問明東寺異變的原委。'},
+    yakushi:{title:'喚醒藥師如來', status:'locked', desc:'收集靈草、淨水、香木，供養藥師如來。'},
+    fudo:{title:'喚醒不動明王', status:'locked', desc:'擊退鎖鏈通道上的妖怪，直面不動明王。'},
+    kongo:{title:'喚醒金剛波羅蜜多菩薩', status:'locked', desc:'破解地、水、火、風四座法陣。'},
+    dainichi:{title:'喚醒大日如來', status:'locked', desc:'集齊三位護法之力，前往講堂。'},
+    final:{title:'京都最後的護法', status:'locked', desc:'直面魍魎王，做出最後一擊。'},
+  };
+
+  const items = [
+    {id:'lingcao', x:9, y:3, emoji:'🌿', taken:false},
+    {id:'jingshui', x:19, y:5, emoji:'💧', taken:false},
+    {id:'xiangmu', x:9, y:12, emoji:'🪵', taken:false},
+  ];
+  const offerings = {lingcao:false, jingshui:false, xiangmu:false};
+
+  const formations = {
+    earth:{x:16,y:11,name:'地之陣',glyph:'🜃',solved:false,
+      q:'沉重的東西，怎麼放下？', opts:['用力抓緊','放開雙手','丟給別人'], correct:1},
+    water:{x:19,y:11,name:'水之陣',glyph:'🜄',solved:false,
+      q:'水一直留在同一個地方，會如何？', opts:['變得清澈','逐漸腐臭','結成冰'], correct:1},
+    fire:{x:16,y:14,name:'火之陣',glyph:'🜂',solved:false,
+      q:'火為什麼會熄滅？', opts:['風太大','沒有東西可以燒','剛好下雨'], correct:1},
+    wind:{x:19,y:14,name:'風之陣',glyph:'🜁',solved:false,
+      q:'風想要抓住，抓得住嗎？', opts:['抓得住','抓不住','要看風速'], correct:1},
+  };
+  const formationCoordKey = {};
+  Object.entries(formations).forEach(([k,f])=>{ formationCoordKey[f.x+','+f.y]=k; });
+
+  const yokaiGate1 = {x:4,y:11, done:false};
+  const yokaiGate2 = {x:4,y:9, done:false};
+
+  const npcs = [
+    {id:'monk', x:11, y:4, emoji:'🧎',name:'老僧',
+      get(){
+        if(!state.metMonk){
+          return [
+            '（金堂裡，一位老僧靜靜坐著，四周沒有半點香火。）',
+            '老僧：「佛從不主動干涉世間。」',
+            '老僧：「但只要世人仍有願心，護法便會再次站起。」',
+            '（老僧交給你一串念珠。）',
+            '老僧：「從現在起，依序喚醒四位護法吧。」',
+            '老僧：「藥師如來、不動明王、金剛波羅蜜多菩薩，最後是大日如來。」'
+          ];
+        }
+        const remain = ['yakushi','fudo','kongo'].filter(k=>!awakened[k]);
+        if(remain.length>0) return ['老僧：「四位護法，還缺 '+remain.length+' 位尚未甦醒。」'];
+        if(!awakened.dainichi) return ['老僧：「三位護法皆已甦醒，講堂中央，該去見大日如來了。」'];
+        return ['老僧：「京都最後的希望，就交給你了。」'];
+      },
+      onTalk(){ state.metMonk = true; quests.monk.status='done'; quests.yakushi.status='active'; quests.fudo.status='active'; quests.kongo.status='active'; renderQuests(); }
+    },
+  ];
+
+  const gridEl = document.getElementById('grid');
+
+  function entityAt(x,y){
+    if(state.x===x && state.y===y) return {emoji:'🧑', cls:'player-sprite'};
+    if(kaimaru.active && kaimaru.x===x && kaimaru.y===y) return {emoji:'🦌', cls:'glow'};
+    if(!yokaiGate1.done && yokaiGate1.x===x && yokaiGate1.y===y && quests.fudo.status!=='locked') return {emoji:'👹', cls:'glow'};
+    if(yokaiGate1.done && !yokaiGate2.done && yokaiGate2.x===x && yokaiGate2.y===y) return {emoji:'👹', cls:'glow'};
+    for(const n of npcs){ if(n.x===x&&n.y===y) return {emoji:n.emoji, cls:''}; }
+    for(const it of items){
+      if(!it.taken && it.x===x && it.y===y && quests.yakushi.status!=='locked') return {emoji:it.emoji, cls:'glow'};
+    }
+    return null;
+  }
+
+  function renderMap(){
+    updateHud();
+    let html='';
+    for(let y=0;y<ROWS;y++){
+      for(let x=0;x<COLS;x++){
+        const t = terrain[y][x];
+        const ent = entityAt(x,y);
+        let glyph = ent ? ent.emoji : tileGlyph(t);
+        let cls = ent ? ent.cls : '';
+        if(!ent && (t==='Y'&&awakened.yakushi || t==='F'&&awakened.fudo || t==='D'&&awakened.dainichi)) cls='awakened';
+        html += `<div class="cell ${tileClass(t)} ${cls}">${glyph}</div>`;
+      }
+    }
+    gridEl.innerHTML = html;
+  }
+  function updateHud(){
+    const el = document.getElementById('hudInfo');
+    if(!el) return;
+    const count = Object.values(awakened).filter(Boolean).length;
+    el.textContent = `🍘×${state.snacks}　護法 ${count}/4`;
+  }
+
+  function renderQuests(){
+    const list = document.getElementById('questList');
+    let html='';
+    Object.values(quests).forEach(q=>{
+      if(q.status==='locked') return;
+      const done = q.status==='done';
+      html += `<div class="quest-item ${done?'done':''}"><div class="qtitle">${q.title}</div><div class="qdesc">${q.desc}</div></div>`;
+    });
+    list.innerHTML = html || '<div class="qdesc">先去金堂見老僧吧。</div>';
+  }
+  function toggleQuests(){
+    renderQuests();
+    const p = document.getElementById('questPanel');
+    p.style.display = (p.style.display==='block') ? 'none' : 'block';
+  }
+
+  let bannerTimeout=null;
+  function showBanner(text){
+    const b = document.getElementById('banner');
+    b.textContent = text;
+    b.classList.add('show');
+    clearTimeout(bannerTimeout);
+    bannerTimeout = setTimeout(()=>b.classList.remove('show'), 1800);
+  }
+
+  function say(lines, callback){
+    state.dialogueQueue = lines.slice();
+    state.dialogueCallback = callback || null;
+    state.inDialogue = true;
+    document.getElementById('dialogue').style.display='block';
+    advanceDialogue();
+  }
+  function advanceDialogue(){
+    if(state.dialogueQueue.length===0){
+      document.getElementById('dialogue').style.display='none';
+      state.inDialogue = false;
+      const cb = state.dialogueCallback;
+      state.dialogueCallback = null;
+      if(cb) cb();
+      return;
+    }
+    const line = state.dialogueQueue.shift();
+    const idx = line.indexOf('：「');
+    const speakerEl = document.getElementById('dlgSpeaker');
+    const textEl = document.getElementById('dlgText');
+    if(idx>-1){
+      speakerEl.textContent = line.slice(0,idx);
+      let body = line.slice(idx+2);
+      if(body.endsWith('」')) body = body.slice(0,-1);
+      textEl.textContent = body;
+    }else{
+      speakerEl.textContent='';
+      textEl.textContent = line;
+    }
+  }
+
+  function canWalk(x,y){
+    if(x<0||y<0||x>=COLS||y>=ROWS) return false;
+    const t = terrain[y][x];
+    if(blocking.has(t)) return false;
+    for(const n of npcs){ if(n.x===x&&n.y===y) return false; }
+    return true;
+  }
+  function movePlayer(dx,dy){
+    if(state.inDialogue||state.inBattle||state.inPuzzle) return;
+    const nx=state.x+dx, ny=state.y+dy;
+    if(!canWalk(nx,ny)) return;
+    state.x=nx; state.y=ny;
+    if(kaimaru.active){
+      const px = state.x-dx, py = state.y-dy;
+      kaimaru.x = px; kaimaru.y = py;
+    }
+    checkTileEvents();
+    renderMap();
+  }
+  function checkTileEvents(){
+    for(const it of items){
+      if(!it.taken && it.x===state.x && it.y===state.y && quests.yakushi.status!=='locked'){
+        it.taken = true;
+        offerings[it.id] = true;
+        showBanner('獲得了供品');
+        renderMap();
+      }
+    }
+    if(!yokaiGate1.done && state.x===yokaiGate1.x && state.y===yokaiGate1.y && quests.fudo.status!=='locked'){
+      yokaiGate1.done = true;
+      say(['（黑霧中竄出一隻妖怪！）'], ()=> startBattle('fudo1'));
+      return;
+    }
+    if(yokaiGate1.done && !yokaiGate2.done && state.x===yokaiGate2.x && state.y===yokaiGate2.y){
+      yokaiGate2.done = true;
+      say(['（更深處，又一隻妖怪擋住去路！）'], ()=> startBattle('fudo2'));
+      return;
+    }
+  }
+  function adjTo(tx,ty){
+    return Math.abs(state.x-tx)+Math.abs(state.y-ty)<=1 && !(state.x===tx&&state.y===ty);
+  }
+
+  function interact(){
+    if(state.inDialogue||state.inBattle||state.inPuzzle) return;
+    for(const n of npcs){
+      if(Math.abs(n.x-state.x)+Math.abs(n.y-state.y)<=1 && !(n.x===state.x&&n.y===state.y)){
+        say(n.get(), ()=> n.onTalk());
+        return;
+      }
+    }
+    if(adjTo(5,4)){
+      if(!state.metMonk){ say(['（祭壇上塵封已久，似乎需要先見過老僧。）']); return; }
+      if(awakened.yakushi){ say(['藥師如來：「真正治癒人的，並不是藥，而是願意伸出的手。」']); return; }
+      if(offerings.lingcao && offerings.jingshui && offerings.xiangmu){
+        say(['（你將靈草、淨水、香木一一供上……）','（藥師如來緩緩睜開眼睛。）',
+             '藥師如來：「真正治癒人的，並不是藥。」','藥師如來：「而是願意伸出的手。」',
+             '（你學會了「治癒術」。）'], ()=>{
+          awakened.yakushi = true;
+          quests.yakushi.status='done';
+          renderQuests(); renderMap();
+          showBanner('藥師如來　甦醒');
+        });
+      } else {
+        const missing = [];
+        if(!offerings.lingcao) missing.push('靈草');
+        if(!offerings.jingshui) missing.push('淨水');
+        if(!offerings.xiangmu) missing.push('香木');
+        say(['（祭壇前似乎還缺少：'+missing.join('、')+'。）']);
+      }
+      return;
+    }
+    if(adjTo(4,13)){
+      if(!state.metMonk){ say(['（鎖鏈纏繞的佛像散發著沉重的氣息，似乎該先見老僧。）']); return; }
+      if(awakened.fudo){ say(['不動明王：「即使害怕，仍願意前進——這就是你的劍氣。」']); return; }
+      if(!yokaiGate1.done || !yokaiGate2.done){ say(['（通道深處仍有妖怪的氣息，得先清除才能靠近佛像。）']); return; }
+      say([
+        '（黑色鎖鏈纏繞著整尊佛像。）',
+        '不動明王：「你害怕嗎？」',
+        '蒼真：「害怕。」',
+        '不動明王：「即使害怕，還願意前進？」',
+        '蒼真：「願意。」',
+        '（黑色鎖鏈，全部斷裂。）',
+        '（你獲得了「不動劍氣」。）'
+      ], ()=>{
+        awakened.fudo = true;
+        quests.fudo.status='done';
+        renderQuests(); renderMap();
+        showBanner('不動明王　甦醒');
+      });
+      return;
+    }
+    if(adjTo(11,9)){
+      if(!state.metMonk){ say(['（講堂中央的佛像始終閉著眼。）']); return; }
+      if(awakened.dainichi){
+        if(!state.bossTriggered){ triggerFinalBoss(); }
+        else { say(['大日如來：「去吧。人類的未來，應由人類自己守護。」']); }
+        return;
+      }
+      const remain = ['yakushi','fudo','kongo'].filter(k=>!awakened[k]);
+      if(remain.length>0){ say(['（大日如來靜靜閉著眼，似乎還在等待。）','（尚有護法未曾甦醒。）']); return; }
+      say([
+        '（你將三位護法的力量帶到講堂中央……）',
+        '（整座東寺開始發光。）',
+        '（大日如來，緩緩睜開眼睛。）',
+        '大日如來：「我並不是京都的守護者。」',
+        '大日如來：「真正守護京都的人，是那些願意守護別人的人。」'
+      ], ()=>{
+        awakened.dainichi = true;
+        quests.dainichi.status='done';
+        quests.final.status='active';
+        renderQuests(); renderMap();
+        showBanner('大日如來　甦醒');
+        setTimeout(()=> triggerFinalBoss(), 900);
+      });
+      return;
+    }
+    for(const [dx,dy] of [[0,0],[1,0],[-1,0],[0,1],[0,-1]]){
+      const k2 = (state.x+dx)+','+(state.y+dy);
+      if(formationCoordKey[k2]){
+        openPuzzle(formationCoordKey[k2]);
+        return;
+      }
+    }
+  }
+
+  function handleKey(e){
+    if(document.getElementById('dialogue').style.display==='block' && (e.key===' '||e.key==='Enter')){
+      e.preventDefault(); advanceDialogue(); return;
+    }
+    const overworldVisible = document.getElementById('overworld').style.display!=='none';
+    if(!overworldVisible || state.inBattle || state.inPuzzle) return;
+    switch(e.key){
+      case 'ArrowUp': case 'w': case 'W': movePlayer(0,-1); break;
+      case 'ArrowDown': case 's': case 'S': movePlayer(0,1); break;
+      case 'ArrowLeft': case 'a': case 'A': movePlayer(-1,0); break;
+      case 'ArrowRight': case 'd': case 'D': movePlayer(1,0); break;
+      case 'e': case 'E': interact(); break;
+      case 'q': case 'Q': toggleQuests(); break;
+    }
+  }
+
+  function openPuzzle(key){
+    const f = formations[key];
+    if(f.solved){ say(['（這座法陣已經平靜下來了。）']); return; }
+    state.inPuzzle = true;
+    document.getElementById('overworld').style.display='none';
+    document.getElementById('puzzleScreen').style.display='block';
+    document.getElementById('puzzleGlyph').textContent = f.glyph;
+    document.getElementById('puzzleTitle').textContent = f.name;
+    document.getElementById('puzzleQuestion').textContent = f.q;
+    document.getElementById('puzzleFeedback').textContent = '';
+    const optWrap = document.getElementById('puzzleOptions');
+    optWrap.innerHTML='';
+    f.opts.forEach((opt,i)=>{
+      const b = document.createElement('button');
+      b.className='btn secondary';
+      b.textContent = opt;
+      b.onclick = ()=> answerPuzzle(key, i);
+      optWrap.appendChild(b);
+    });
+  }
+  function answerPuzzle(key, i){
+    const f = formations[key];
+    if(i===f.correct){
+      f.solved = true;
+      document.getElementById('puzzleFeedback').textContent = '法陣的騷動平息了下來……';
+      setTimeout(()=>{
+        state.inPuzzle=false;
+        document.getElementById('puzzleScreen').style.display='none';
+        document.getElementById('overworld').style.display='block';
+        renderMap();
+        showBanner(f.name+'　已平定');
+        checkKongoComplete();
+      }, 900);
+    } else {
+      document.getElementById('puzzleFeedback').textContent = '（法陣微微震動，似乎不是這個答案……）';
+    }
+  }
+  function checkKongoComplete(){
+    const all = Object.values(formations).every(f=>f.solved);
+    if(all && !awakened.kongo){
+      say([
+        '（四座法陣同時發出光芒。）',
+        '（金剛波羅蜜多菩薩，緩緩浮現。）',
+        '菩薩：「執著，才是真正的魔。」',
+        '（你學會了「破幻術」。）'
+      ], ()=>{
+        awakened.kongo = true;
+        quests.kongo.status='done';
+        renderQuests(); renderMap();
+        showBanner('金剛波羅蜜多菩薩　甦醒');
+      });
+    }
+  }
+
+  let battle = null;
+  function startBattle(kind){
+    state.inBattle = true;
+    document.getElementById('overworld').style.display='none';
+    document.getElementById('battleScreen').style.display='block';
+    document.getElementById('guardianMenu').style.display='none';
+    document.getElementById('guardianMenu').innerHTML='';
+    if(kind==='fudo1' || kind==='fudo2'){
+      battle = {kind, enemy:{name:'業障妖', emoji:'👹', hp:20, maxHp:20, atk:5, def:1, corrupted:false}, canFlee:false};
+      document.getElementById('battleTitle').textContent='鎖鏈通道';
+    } else if(kind==='final'){
+      battle = {kind, enemy:{name:'魍魎王', emoji:'😈', hp:140, maxHp:140, atk:10, def:3, corrupted:true},
+        canFlee:false, phaseShown:0,
+        guardianUsed:{yakushi:false,fudo:false,kongo:false,dainichi:false}, dispelNext:false};
+      document.getElementById('battleTitle').textContent='最終決戰';
+      renderGuardianMenu();
+    }
+    document.getElementById('enemySprite').textContent = battle.enemy.emoji;
+    document.getElementById('enemySprite').className = 'sprite'+(battle.enemy.corrupted?' corrupted':'');
+    document.getElementById('enemyName').textContent = battle.enemy.name;
+    document.getElementById('fleeBtn').style.display = battle.canFlee ? 'inline-block':'none';
+    updateBattleUI();
+    logBattle(kind==='final' ? '魍魎王：「這就是人類。」' : '業障妖擋住了去路！');
+  }
+  function renderGuardianMenu(){
+    const wrap = document.getElementById('guardianMenu');
+    wrap.style.display='flex';
+    const defs = [
+      {k:'yakushi', label:'🌟 藥師如來・恢復全力', avail:awakened.yakushi},
+      {k:'fudo', label:'🌟 不動明王・斬斷黑霧', avail:awakened.fudo},
+      {k:'kongo', label:'🌟 金剛波羅蜜多・破解幻術', avail:awakened.kongo},
+      {k:'dainichi', label:'🌟 大日如來・賦予光芒', avail:awakened.dainichi},
+    ];
+    wrap.innerHTML='';
+    defs.forEach(d=>{
+      const b = document.createElement('button');
+      b.className='btn guardian';
+      b.textContent = d.label;
+      b.disabled = !d.avail || battle.guardianUsed[d.k];
+      b.onclick = ()=> useGuardian(d.k);
+      wrap.appendChild(b);
+    });
+  }
+  function useGuardian(k){
+    if(!battle || battle.over || battle.guardianUsed[k]) return;
+    battle.guardianUsed[k] = true;
+    let msg='';
+    if(k==='yakushi'){
+      state.hp = state.maxHp; state.mp = state.maxMp;
+      msg = '藥師如來：「真正治癒人的，是願意伸出的手。」（HP／MP 完全恢復！）';
+    } else if(k==='fudo'){
+      const dmg = 22;
+      battle.enemy.hp -= dmg;
+      msg = `不動明王斬斷黑霧，造成 ${dmg} 點傷害！`;
+    } else if(k==='kongo'){
+      battle.dispelNext = true;
+      msg = '金剛波羅蜜多菩薩：「執著，才是真正的魔。」（下一擊幻術已被破解）';
+    } else if(k==='dainichi'){
+      state.atk += 6;
+      msg = '大日如來：「去吧，人類的未來，應由人類自己守護。」（攻擊力大幅提升！）';
+    }
+    updateBattleUI();
+    renderGuardianMenu();
+    if(battle.enemy.hp<=0){
+      logBattle(msg);
+      setTimeout(()=>endBattle(true,false), 700);
+      return;
+    }
+    logBattle(msg);
+  }
+  function updateBattleUI(){
+    document.getElementById('enemyHpBar').style.width = Math.max(0,(battle.enemy.hp/battle.enemy.maxHp*100))+'%';
+    document.getElementById('enemyHpText').textContent = `HP ${Math.max(0,battle.enemy.hp)}/${battle.enemy.maxHp}`;
+    document.getElementById('playerHpBar').style.width = Math.max(0,(state.hp/state.maxHp*100))+'%';
+    document.getElementById('playerHpText').textContent = `HP ${Math.max(0,state.hp)}/${state.maxHp}`;
+    document.getElementById('playerMpBar').style.width = Math.max(0,(state.mp/state.maxMp*100))+'%';
+    document.getElementById('playerMpText').textContent = `MP ${Math.max(0,state.mp)}/${state.maxMp}`;
+  }
+  function logBattle(text){ document.getElementById('battleLog').textContent = text; }
+
+  const bossPhaseLines = ['嫉妒。','憤怒。','恐懼。','自私。','這就是人類。'];
+  function checkBossPhase(){
+    if(battle.kind!=='final') return '';
+    const ratio = battle.enemy.hp / battle.enemy.maxHp;
+    const thresholds = [0.8,0.6,0.4,0.2,0.001];
+    for(let i=0;i<thresholds.length;i++){
+      if(ratio<=thresholds[i] && battle.phaseShown<=i){
+        battle.phaseShown = i+1;
+        return '\n魍魎王：「'+bossPhaseLines[i]+'」';
+      }
+    }
+    return '';
+  }
+
+  function battleAction(action){
+    if(!battle || battle.over) return;
+    let msg = '';
+    if(action==='attack'){
+      const dmg = Math.max(1, state.atk - battle.enemy.def + Math.floor(Math.random()*4)-1);
+      battle.enemy.hp -= dmg;
+      msg = `蒼真發動攻擊，造成 ${dmg} 點傷害！`;
+    } else if(action==='spell'){
+      if(state.mp<3){ logBattle('法力不足，無法使用除魔符。'); return; }
+      state.mp -= 3;
+      const dmg = Math.max(2, state.atk + 5 - battle.enemy.def + Math.floor(Math.random()*4)-1);
+      battle.enemy.hp -= dmg;
+      msg = `蒼真使出除魔符，造成 ${dmg} 點傷害！`;
+    } else if(action==='item'){
+      if(state.snacks<=0){ logBattle('已經沒有仙貝了。'); return; }
+      state.snacks--;
+      state.hp = Math.min(state.maxHp, state.hp+12);
+      msg = '分了鹿丸一塊仙貝，恢復了 12 點HP。';
+    } else if(action==='flee'){
+      if(!battle.canFlee){ logBattle('無法從這場戰鬥中逃跑！'); return; }
+      endBattle(false, true);
+      return;
+    }
+    msg += checkBossPhase();
+    updateBattleUI();
+    if(battle.enemy.hp<=0){
+      logBattle(msg);
+      setTimeout(()=>endBattle(true,false), 700);
+      return;
+    }
+    setTimeout(()=>enemyTurn(msg), 650);
+  }
+  function enemyTurn(prevMsg){
+    if(battle.over) return;
+    let dmg = Math.max(1, battle.enemy.atk - state.def + Math.floor(Math.random()*3)-1);
+    let extra = '';
+    if(battle.kind==='final' && battle.dispelNext){
+      dmg = Math.ceil(dmg/3);
+      battle.dispelNext = false;
+      extra = ' （菩薩的破幻術削弱了攻擊！）';
+    } else if(kaimaru.active && Math.random()<0.2){
+      dmg = Math.ceil(dmg/2);
+      extra = ' 鹿丸衝過來擋了一下：「我、我來擋！」';
+    }
+    state.hp -= dmg;
+    updateBattleUI();
+    logBattle(`${prevMsg}\n${battle.enemy.name}反擊，造成 ${dmg} 點傷害！${extra}`);
+    if(state.hp<=0){
+      setTimeout(()=>{ state.hp = 1; logBattle('蒼真踉蹌了一下，但還能繼續戰鬥！'); }, 700);
+    }
+  }
+  function endBattle(won, fled){
+    battle.over = true;
+    state.inBattle = false;
+    document.getElementById('battleScreen').style.display='none';
+    document.getElementById('overworld').style.display='block';
+    if(fled){ showBanner('逃跑了……'); renderMap(); return; }
+    if((battle.kind==='fudo1'||battle.kind==='fudo2') && won){
+      showBanner('擊退了業障妖');
+      renderMap();
+      return;
+    }
+    if(battle.kind==='final' && won){ finishFinalBoss(); return; }
+  }
+
+  function triggerFinalBoss(){
+    state.bossTriggered = true;
+    say([
+      '（大日如來將最後的力量交給了你。）',
+      '（東寺外，黑霧開始劇烈翻騰……）',
+      '（人心的怨念，匯聚成了巨大的身影。）',
+      '魍魎王：「這就是人類。」'
+    ], ()=> startBattle('final'));
+  }
+  function finishFinalBoss(){
+    say([
+      '（魍魎王的身影逐漸消散在光芒之中。）',
+      '大日如來：「去吧。」',
+      '大日如來：「人類的未來，應由人類自己守護。」',
+      '（京都的天空，重新恢復了光明。）'
+    ], ()=>{
+      state.bossDefeated = true;
+      quests.final.status='done';
+      renderQuests();
+      showEpilogue();
+    });
+  }
+  function showEpilogue(){
+    say([
+      '大日如來：「三百年了。」',
+      '大日如來：「你還是沒有找到回奈良的路。」',
+      '（鹿丸愣住了。）',
+      '（原來，鹿丸真的是春日神社派遣的古老神使——只是太天然，沒人相信。）',
+      '（回到平安神宮，師父站在鳥居前。）',
+      '師父：「現在你明白了嗎？」',
+      '蒼真：「明白什麼？」',
+      '師父：「神社不會守護京都。」',
+      '師父：「佛寺也不會。」',
+      '師父：「真正守護京都的人，永遠都是願意挺身而出的人。」'
+    ], ()=> showClearScreen());
+  }
+  function showClearScreen(){
+    document.getElementById('overworld').style.display='none';
+    document.getElementById('clearScreen').style.display='block';
+    document.getElementById('clearIcon').textContent = '🗼';
+    document.getElementById('clearTitle').textContent = '第二章　完';
+    document.getElementById('clearText').textContent =
+      '魍魎王消散，東寺的黑霧散去，京都恢復了往日的和平。蒼真完成了考核，成為了真正的陰陽師——不是因為神佛守護了京都，而是因為他，願意守護京都。';
+    document.getElementById('clearCredit').style.display='block';
+    const egg = document.getElementById('clearEgg');
+    egg.style.display='block';
+    egg.textContent = '【彩蛋】鹿丸興高采烈地說：「我終於知道奈良在哪裡了！」下一幕，牠站在海邊，背景寫著「神戶港」。鹿丸抓抓頭：「奇怪……奈良什麼時候有海了？」';
+    const btn = document.getElementById('clearBtn');
+    btn.textContent = '回到標題';
+    btn.onclick = ()=> location.reload();
+  }
+
+  function start(){
+    document.body.className='theme-2';
+    document.getElementById('hudTitle').textContent = '第二章・東寺';
+    gridEl.style.gridTemplateColumns = `repeat(${COLS}, ${CELL}px)`;
+    gridEl.style.gridTemplateRows = `repeat(${ROWS}, ${CELL}px)`;
+    gridEl.style.width = (COLS*CELL)+'px';
+    gridEl.style.height = (ROWS*CELL)+'px';
+    document.getElementById('overworld').style.display='block';
+    renderQuests();
+    renderMap();
+  }
+
+  return {start, handleKey, toggleQuests, battleAction, movePlayer, interact, advanceDialogue};
+})();
+</script>
+</body>
+</html>
