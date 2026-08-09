@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>護法京都 Kyoto Guardians</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
@@ -269,6 +270,26 @@
    ========================================================= */
 
 let activeApi = null;
+let currentGridDims = null;
+
+function fitGrid(){
+  if(!currentGridDims) return;
+  const {cols, rows, cell} = currentGridDims;
+  const frameEl = document.querySelector('.frame');
+  const gridEl = document.getElementById('grid');
+  const wrap = document.getElementById('mapWrap');
+  if(!frameEl || !gridEl || !wrap) return;
+  const available = frameEl.clientWidth - 20;
+  const gridW = cols*cell, gridH = rows*cell;
+  const scale = Math.min(1, available/gridW);
+  gridEl.style.transform = 'scale('+scale+')';
+  gridEl.style.transformOrigin = 'top left';
+  wrap.style.width = Math.round(gridW*scale)+'px';
+  wrap.style.height = Math.round(gridH*scale)+'px';
+  wrap.style.margin = '0 auto';
+}
+window.addEventListener('resize', fitGrid);
+window.addEventListener('orientationchange', ()=> setTimeout(fitGrid, 200));
 
 function goToChapter1(){
   document.getElementById('titleScreen').style.display='none';
@@ -770,6 +791,8 @@ const Chapter1 = (function(){
     gridEl.style.width = (COLS*CELL)+'px';
     gridEl.style.height = (ROWS*CELL)+'px';
     document.getElementById('overworld').style.display='block';
+    currentGridDims = {cols:COLS, rows:ROWS, cell:CELL};
+    fitGrid();
     renderQuests();
     renderMap();
   }
@@ -1414,6 +1437,8 @@ const Chapter2 = (function(){
     gridEl.style.width = (COLS*CELL)+'px';
     gridEl.style.height = (ROWS*CELL)+'px';
     document.getElementById('overworld').style.display='block';
+    currentGridDims = {cols:COLS, rows:ROWS, cell:CELL};
+    fitGrid();
     renderQuests();
     renderMap();
   }
